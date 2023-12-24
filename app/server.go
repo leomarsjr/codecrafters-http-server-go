@@ -19,7 +19,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	_, err = conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
+	writeResponse(conn)
+}
+
+func writeResponse(conn net.Conn) {
+	_, err := conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
 	if err != nil {
 		fmt.Println("Failed to write response")
 		os.Exit(1)
