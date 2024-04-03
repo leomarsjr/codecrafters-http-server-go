@@ -7,10 +7,14 @@ import (
 	"strings"
 )
 
-const bufferSize = 4096
+const (
+	bufferSize         = 4096
+	httpStatusOk       = 200
+	httpStatusNotFound = 404
+)
 
 func main() {
-	l, err := net.Listen("tcp", "0.0.0.0:4221")
+	l, err := net.Listen("tcp", "127.0.0.1:4221")
 	if err != nil {
 		fmt.Println("Failed to bind to port 4221")
 		os.Exit(1)
@@ -25,17 +29,17 @@ func main() {
 	buffer := make([]byte, bufferSize)
 	readRequest(conn, buffer)
 
-	status := parseInput(buffer)
+	status := parseRequest(buffer)
 
 	writeResponse(conn, status)
 }
 
-func parseInput(input []byte) int {
+func parseRequest(input []byte) int {
 	path := strings.Fields(string(input))[1]
 	if path != "/" {
-		return 404
+		return httpStatusNotFound
 	}
-	return 200
+	return httpStatusOk
 }
 
 func readRequest(conn net.Conn, buffer []byte) {
@@ -57,9 +61,9 @@ func writeResponse(conn net.Conn, status int) {
 
 func createResponseHeader(status int) string {
 	switch status {
-	case 200:
+	case httpStatusOk:
 		return "HTTP/1.1 200 OK\r\n\r\n"
-	case 404:
+	case httpStatusNotFound:
 		return "HTTP/1.1 404 NOT FOUND\r\n\r\n"
 	}
 	return ""
