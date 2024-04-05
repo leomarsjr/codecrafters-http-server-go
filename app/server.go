@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"strings"
+	"regexp"
+
+	"github.com/codecrafters-io/http-server-starter-go/httpmessage"
 )
 
 const (
-	bufferSize         = 4096
-	httpStatusOk       = 200
-	httpStatusNotFound = 404
+	bufferSize = 4096
 )
 
 func main() {
@@ -29,17 +29,18 @@ func main() {
 	buffer := make([]byte, bufferSize)
 	readRequest(conn, buffer)
 
-	status := parseRequest(buffer)
+	resp := handleRequest(buffer)
 
-	writeResponse(conn, status)
+	writeResponse(conn, resp)
 }
 
-func parseRequest(input []byte) int {
-	path := strings.Fields(string(input))[1]
-	if path != "/" {
-		return httpStatusNotFound
+func handleRequest(input []byte) *httpmessage.Response {
+	r := regexp.MustCompile(`/(\S+/?)*`)
+	str := r.FindStringSubmatch(string(input))
+	if str[0] == "/" {
+		return httpmessage.StatusOnlyResponse(httpmessage.StatusOK)
 	}
-	return httpStatusOk
+	return httpmessage.StatusOnlyResponse(httpmessage.StatusNotFound)
 }
 
 func readRequest(conn net.Conn, buffer []byte) {
@@ -50,21 +51,10 @@ func readRequest(conn net.Conn, buffer []byte) {
 	}
 }
 
-func writeResponse(conn net.Conn, status int) {
-	responseHeader := createResponseHeader(status)
-	_, err := conn.Write([]byte(responseHeader))
+func writeResponse(conn net.Conn, resp *httpmessage.Response) {
+	_, err := conn.Write(resp.ToByteArray())
 	if err != nil {
 		fmt.Println("Failed to write response: ", err.Error())
 		os.Exit(1)
 	}
-}
-
-func createResponseHeader(status int) string {
-	switch status {
-	case httpStatusOk:
-		return "HTTP/1.1 200 OK\r\n\r\n"
-	case httpStatusNotFound:
-		return "HTTP/1.1 404 NOT FOUND\r\n\r\n"
-	}
-	return ""
 }
