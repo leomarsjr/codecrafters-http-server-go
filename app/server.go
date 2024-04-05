@@ -13,6 +13,8 @@ const (
 	bufferSize = 4096
 )
 
+var pathRegex = regexp.MustCompile(`/(\w*)/?(\S*)`)
+
 func main() {
 	l, err := net.Listen("tcp", "127.0.0.1:4221")
 	if err != nil {
@@ -34,20 +36,23 @@ func main() {
 	writeResponse(conn, resp)
 }
 
-func handleRequest(input []byte) *httpmessage.Response {
-	r := regexp.MustCompile(`/(\S+/?)*`)
-	str := r.FindStringSubmatch(string(input))
-	if str[0] == "/" {
-		return httpmessage.StatusOnlyResponse(httpmessage.StatusOK)
-	}
-	return httpmessage.StatusOnlyResponse(httpmessage.StatusNotFound)
-}
-
 func readRequest(conn net.Conn, buffer []byte) {
 	_, err := conn.Read(buffer)
 	if err != nil {
 		fmt.Println("Error reading request: ", err.Error())
 		os.Exit(1)
+	}
+}
+
+func handleRequest(input []byte) *httpmessage.Response {
+	matches := pathRegex.FindStringSubmatch(string(input))
+	switch matches[1] {
+	case "":
+		return httpmessage.StatusOnlyResponse(httpmessage.StatusOK)
+	case "echo":
+		return httpmessage.EchoResponse(matches[2])
+	default:
+		return httpmessage.StatusOnlyResponse(httpmessage.StatusNotFound)
 	}
 }
 

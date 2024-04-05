@@ -2,6 +2,7 @@ package httpmessage
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -50,16 +51,23 @@ func StatusOnlyResponse(status Status) *Response {
 	return NewResponse(status, EmptyHeaders, EmptyBody)
 }
 
+func EchoResponse(body string) *Response {
+	headers := Headers{}
+	headers["Content-Type"] = "text/plain"
+	headers["Content-Length"] = strconv.Itoa(len(body))
+	return NewResponse(StatusOK, headers, body)
+}
+
 func (r Response) String() string {
 	var resp strings.Builder
 	fmt.Fprintf(&resp, "%s %s\r\n", protocolVersion, r.status)
 	if len(r.headers) > 0 {
 		fmt.Fprintf(&resp, "%s\r\n", r.headers)
 	}
-	if r.body != "" {
-		fmt.Fprintf(&resp, "\r\n%s\r\n", r.body)
-	}
 	fmt.Fprintf(&resp, "\r\n")
+	if r.body != "" {
+		fmt.Fprintf(&resp, "%s", r.body)
+	}
 	return resp.String()
 }
 
