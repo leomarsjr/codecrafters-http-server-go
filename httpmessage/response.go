@@ -1,12 +1,19 @@
 package httpmessage
 
 import (
+	"errors"
 	"fmt"
+	"io"
+	"os"
+	"path"
 	"strconv"
 	"strings"
 )
 
-const textPlainContentType = "text/plain"
+const (
+	textPlainContentType   = "text/plain"
+	octetStreamContentType = "application/octet-stream"
+)
 
 type Response struct {
 	status  Status
@@ -34,6 +41,26 @@ func UserAgentResponse(agent string) *Response {
 	headers["Content-Type"] = textPlainContentType
 	headers["Content-Length"] = strconv.Itoa(len(agent))
 	return NewResponse(StatusOK, headers, agent)
+}
+
+func FileResponse(directory, fileName string) *Response {
+	headers := Headers{}
+	headers["Content-Type"] = octetStreamContentType
+	file, err := readFile(path.Join(directory, fileName))
+	if errors.Is(err, os.ErrNotExist) {
+		return NewResponse(StatusNotFound, headers, EmptyBody)
+	}
+	headers["Content-Length"] = strconv.Itoa(len(file))
+	return NewResponse(StatusOK, headers, string(file))
+}
+
+func readFile(fileName string) ([]byte, error) {
+	file, err := os.Open(fileName)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	return io.ReadAll(file)
 }
 
 func (r Response) String() string {

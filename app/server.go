@@ -4,9 +4,15 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 )
 
+var directory string
+
 func main() {
+	if len(os.Args) == 3 && os.Args[1] == "--directory" {
+		directory = os.Args[2]
+	}
 	if err := runServer(); err != nil {
 		log.Fatalln(err)
 	}
