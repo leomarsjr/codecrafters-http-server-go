@@ -6,36 +6,7 @@ import (
 	"strings"
 )
 
-const (
-	protocolVersion = "HTTP/1.1"
-	EmptyBody       = ""
-)
-
-var (
-	StatusOK       = Status{200, "OK"}
-	StatusNotFound = Status{404, "Not Found"}
-
-	EmptyHeaders = make(Headers)
-)
-
-type Status struct {
-	code int
-	text string
-}
-
-func (s Status) String() string {
-	return fmt.Sprintf("%d %s", s.code, s.text)
-}
-
-type Headers map[string]string
-
-func (h Headers) String() string {
-	output := make([]string, 0, len(h))
-	for k, v := range h {
-		output = append(output, fmt.Sprintf("%s: %s", k, v))
-	}
-	return strings.Join(output, "\r\n")
-}
+const textPlainContentType = "text/plain"
 
 type Response struct {
 	status  Status
@@ -53,9 +24,16 @@ func StatusOnlyResponse(status Status) *Response {
 
 func EchoResponse(body string) *Response {
 	headers := Headers{}
-	headers["Content-Type"] = "text/plain"
+	headers["Content-Type"] = textPlainContentType
 	headers["Content-Length"] = strconv.Itoa(len(body))
 	return NewResponse(StatusOK, headers, body)
+}
+
+func UserAgentResponse(agent string) *Response {
+	headers := Headers{}
+	headers["Content-Type"] = textPlainContentType
+	headers["Content-Length"] = strconv.Itoa(len(agent))
+	return NewResponse(StatusOK, headers, agent)
 }
 
 func (r Response) String() string {
