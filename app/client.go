@@ -65,7 +65,14 @@ func (c *Client) handleRequest(req []byte) *httpmessage.Response {
 	case "user-agent":
 		return httpmessage.UserAgentResponse(request.Headers["User-Agent"])
 	case "files":
-		return httpmessage.FileResponse(directory, params)
+		switch request.RequestLine.Method {
+		case "GET":
+			return httpmessage.GetFileResponse(directory, params)
+		case "POST":
+			return httpmessage.PostFileResponse(directory, params, request.Body)
+		default:
+			return httpmessage.StatusOnlyResponse(httpmessage.StatusMethodNotAllowed)
+		}
 	default:
 		return httpmessage.StatusOnlyResponse(httpmessage.StatusNotFound)
 	}

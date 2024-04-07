@@ -10,11 +10,6 @@ import (
 	"strings"
 )
 
-const (
-	textPlainContentType   = "text/plain"
-	octetStreamContentType = "application/octet-stream"
-)
-
 type Response struct {
 	status  Status
 	headers Headers
@@ -26,7 +21,7 @@ func NewResponse(status Status, headers Headers, body string) *Response {
 }
 
 func StatusOnlyResponse(status Status) *Response {
-	return NewResponse(status, EmptyHeaders, EmptyBody)
+	return NewResponse(status, EmptyHeaders, emptyBody)
 }
 
 func EchoResponse(body string) *Response {
@@ -43,12 +38,12 @@ func UserAgentResponse(agent string) *Response {
 	return NewResponse(StatusOK, headers, agent)
 }
 
-func FileResponse(directory, fileName string) *Response {
+func GetFileResponse(directory, fileName string) *Response {
 	headers := Headers{}
 	headers["Content-Type"] = octetStreamContentType
 	file, err := readFile(path.Join(directory, fileName))
 	if errors.Is(err, os.ErrNotExist) {
-		return NewResponse(StatusNotFound, headers, EmptyBody)
+		return NewResponse(StatusNotFound, headers, emptyBody)
 	}
 	headers["Content-Length"] = strconv.Itoa(len(file))
 	return NewResponse(StatusOK, headers, string(file))
@@ -61,6 +56,27 @@ func readFile(fileName string) ([]byte, error) {
 	}
 	defer file.Close()
 	return io.ReadAll(file)
+}
+
+func PostFileResponse(directory, fileName, body string) *Response {
+	err := createFile(path.Join(directory, fileName), body)
+	if err != nil {
+		fmt.Println("Error creating file:", err)
+		return StatusOnlyResponse(StatusInternalServerError)
+	}
+	return StatusOnlyResponse(StatusCreated)
+}
+
+func createFile(file, body string) error {
+	f, err := os.Create(file)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	if _, err := f.WriteString(body); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r Response) String() string {
