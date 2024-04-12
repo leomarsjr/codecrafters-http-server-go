@@ -23,7 +23,11 @@ func runServer() error {
 	if err != nil {
 		return fmt.Errorf("%s", "failed to bind to port 4221")
 	}
-	defer l.Close()
+	defer func() {
+		if err := l.Close(); err != nil {
+			log.Printf("Error closing listener: %v", err)
+		}
+	}()
 
 	for {
 		conn, err := l.Accept()

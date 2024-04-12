@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path"
 	"strconv"
@@ -50,18 +51,22 @@ func GetFileResponse(directory, fileName string) *Response {
 }
 
 func readFile(fileName string) ([]byte, error) {
-	file, err := os.Open(fileName)
+	f, err := os.Open(fileName)
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
-	return io.ReadAll(file)
+	defer func(f *os.File) {
+		if err := f.Close(); err != nil {
+			log.Printf("Error closing file: %v", err)
+		}
+	}(f)
+	return io.ReadAll(f)
 }
 
 func PostFileResponse(directory, fileName, body string) *Response {
 	err := createFile(path.Join(directory, fileName), body)
 	if err != nil {
-		fmt.Println("Error creating file:", err)
+		log.Printf("Error creating file: %v", err)
 		return StatusOnlyResponse(StatusInternalServerError)
 	}
 	return StatusOnlyResponse(StatusCreated)
@@ -72,7 +77,11 @@ func createFile(file, body string) error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func(f *os.File) {
+		if err := f.Close(); err != nil {
+			log.Printf("Error closing file: %v", err)
+		}
+	}(f)
 	if _, err := f.WriteString(body); err != nil {
 		return err
 	}

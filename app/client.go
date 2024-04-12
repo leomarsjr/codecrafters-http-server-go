@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"log"
 	"net"
 
 	"github.com/codecrafters-io/http-server-starter-go/httpmessage"
@@ -19,7 +20,11 @@ func NewClient(conn net.Conn) *Client {
 }
 
 func (c *Client) run() {
-	defer c.conn.Close()
+	defer func(conn net.Conn) {
+		if err := conn.Close(); err != nil {
+			log.Printf("Error closing client connection: %v", err)
+		}
+	}(c.conn)
 
 	req, err := c.readRequest()
 	if err != nil {
