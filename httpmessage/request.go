@@ -35,7 +35,8 @@ func NewRequest(requestLine RequestLine, headers Headers, body string) *Request 
 	return &Request{RequestLine: requestLine, Headers: headers, Body: body}
 }
 
-func ParseRequest(request string) (*Request, error) {
+// ParseRequest returns a struct representing the request.
+func ParseRequest(request string) *Request {
 	parts := strings.Split(request, "\r\n")
 	requestLine := parseRequestLine(parts[0])
 	headers := make(Headers)

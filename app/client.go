@@ -60,7 +60,7 @@ func (c *Client) readRequest() ([]byte, error) {
 }
 
 func (c *Client) handleRequest(req []byte) *httpmessage.Response {
-	request, _ := httpmessage.ParseRequest(string(req))
+	request := httpmessage.ParseRequest(string(req))
 	action, params := request.RequestLine.SplitActionAndParams()
 	switch action {
 	case "":
