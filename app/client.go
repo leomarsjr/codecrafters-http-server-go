@@ -11,10 +11,12 @@ import (
 
 const bufferSize = 4096
 
+// Client of the HTTP server that handles the connection.
 type Client struct {
 	conn net.Conn
 }
 
+// NewClient returns a client to handle the connection conn.
 func NewClient(conn net.Conn) *Client {
 	return &Client{conn: conn}
 }

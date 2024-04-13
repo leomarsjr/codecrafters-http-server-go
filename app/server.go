@@ -1,3 +1,13 @@
+// A simple implementation of own HTTP server, for learning purposes.
+// For more information, visit CodeCrafters [catalog],
+// section "Build your own HTTP server".
+//
+// The command accepts an optional flag:
+//
+//	--directory directory-name
+//		name of the local directory for reading and writing files.
+//
+// [catalog]: https://app.codecrafters.io/catalog
 package main
 
 import (
@@ -7,7 +17,7 @@ import (
 	"os"
 )
 
-var directory string
+var directory string // name of the directory to read or write files
 
 func main() {
 	if len(os.Args) == 3 && os.Args[1] == "--directory" {
