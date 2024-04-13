@@ -40,12 +40,12 @@ func UserAgentResponse(agent string) *Response {
 }
 
 func GetFileResponse(directory, fileName string) *Response {
-	headers := Headers{}
-	headers["Content-Type"] = octetStreamContentType
 	file, err := readFile(path.Join(directory, fileName))
 	if errors.Is(err, os.ErrNotExist) {
-		return NewResponse(StatusNotFound, headers, emptyBody)
+		return StatusOnlyResponse(StatusNotFound)
 	}
+	headers := Headers{}
+	headers["Content-Type"] = octetStreamContentType
 	headers["Content-Length"] = strconv.Itoa(len(file))
 	return NewResponse(StatusOK, headers, string(file))
 }
